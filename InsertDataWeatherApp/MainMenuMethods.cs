@@ -11,13 +11,14 @@ namespace InsertDataWeatherApp
 {
     public class MainMenuMethods
     {
-        static bool ok = false;
+        static bool exit = true;
+        
         static string filePath = @"D:\It-Högskolan\Blazor\Inlämningsuppgift\InsertDataWeatherApp\InsertDataWeatherApp\File\TemperaturData.csv";
         //ReadCSVFile(filePath);
         public static void Run()
         {
            
-            bool exit = true;
+            
             while (exit)
             {   
                 Console.WriteLine("Tryck [S] för att söka efter datum");
@@ -33,13 +34,14 @@ namespace InsertDataWeatherApp
                 {
                     case ConsoleKey.S:
                         Console.Clear();
-                        Console.WriteLine("Skriv in datum: yyyy/MM/dd");
-                        DateTime date = Convert.ToDateTime(Console.ReadLine());
+                        bool ok = true;
                         while (ok)
                         {
+                            Console.WriteLine("Skriv in datum: yyyy/MM/dd");
                             
                             try
                             {
+                                DateTime date = Convert.ToDateTime(Console.ReadLine());
                                 foreach (var item in SearchDateMethod(date))
                                 {
                                     Console.WriteLine(item);
