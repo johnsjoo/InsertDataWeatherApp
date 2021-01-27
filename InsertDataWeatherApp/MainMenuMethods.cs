@@ -19,11 +19,9 @@ namespace InsertDataWeatherApp
         //ReadCSVFile(filePath);
         public static void Run()
         {
-            
             while (exit)
             {
                 MainMenu();
-
                 ConsoleKeyInfo key = Console.ReadKey(true);
                 switch (key.Key)
                 {
@@ -32,7 +30,7 @@ namespace InsertDataWeatherApp
                         bool dateLoop = true;
                         while (dateLoop)
                         {
-                            Console.WriteLine("Skriv in datum: yyyy/MM/dd");
+                            Console.WriteLine("Skriv in datum: yyyy-MM-dd");
                             try
                             {
                                 DateTime date = Convert.ToDateTime(Console.ReadLine());
@@ -50,7 +48,7 @@ namespace InsertDataWeatherApp
                                 Console.Clear();
                                 Console.WriteLine("Skriv in ett giltigt datum");
                             }
-                        }
+                        } 
                         break;
 
                     case ConsoleKey.T:
@@ -66,19 +64,14 @@ namespace InsertDataWeatherApp
                                 int numberInput = int.Parse(Console.ReadLine());
                                 Console.Clear();
                                 if (numberInput == 1)
-                                {
                                     weatherInput = "Ute";
-                                }
                                 else if (numberInput == 2)
-                                {
                                     weatherInput = "Inne";
-                                }
 
                                 foreach (var item in FromWarmToCold(weatherInput))
                                 {
                                     Console.WriteLine(item);
                                 }
-
                                 ContinueMethod();
                                 tempLoop = false;
                             }
@@ -157,9 +150,9 @@ namespace InsertDataWeatherApp
                                 int numberInput = int.Parse(Console.ReadLine());
                                 if (numberInput == 1)
                                     moldInput = "Ute";
-
                                 else if (numberInput == 2)
                                     moldInput = "Inne";
+
                                 Console.Clear();
                                 foreach (var item in Moldcheck(moldInput))
                                 {
@@ -178,8 +171,7 @@ namespace InsertDataWeatherApp
 
                     case ConsoleKey.E:
                         exit = false;
-                        break;
-                       
+                        break; 
                 }
                 Console.Clear();
             }
@@ -195,30 +187,28 @@ namespace InsertDataWeatherApp
                 var outSide = context.WeatherDataInfo
                     .Where(x => x.Location == "Ute" && x.DateAndTime.Date == date)
                     .GroupBy(x => x.DateAndTime.Date)
-                    .Select(x => new { DateAndTime = x.Key, Avg = x.Average(x => x.Temp) });
+                    .Select(x => new { DateAndTime = x.Key, TempAvg = x.Average(x => x.Temp) });
 
                 var inSide = context.WeatherDataInfo
                     .Where(x => x.Location == "Inne" && x.DateAndTime.Date == date)
                     .GroupBy(x => x.DateAndTime.Date)
-                    .Select(x => new { DateAndTime = x.Key, Avg = x.Average(x => x.Temp) });
+                    .Select(x => new { DateAndTime = x.Key, TempAvg = x.Average(x => x.Temp) });
 
                 foreach (var item in outSide)
                 {
-                    dates.Add($"MedelTemperatur Ute var: {Math.Round(item.Avg, 1)}°C den {item.DateAndTime.Date}");
+                    dates.Add($"MedelTemperatur Ute var: {Math.Round(item.TempAvg, 1)}°C den {item.DateAndTime.Date}");
                 }
                 foreach (var item in inSide)
                 { 
-                    dates.Add($"MedelTemperatur Inne var: {Math.Round(item.Avg, 1)}°C den {item.DateAndTime.Date}");
+                    dates.Add($"MedelTemperatur Inne var: {Math.Round(item.TempAvg, 1)}°C den {item.DateAndTime.Date}");
                 }
-
                 //Felhantering där data från valt datum saknas.
                 if (dates.Count()==0)
                 {
                     dates.Add("Ingen data för detta datum");
                 }
                 return dates;
-                
-                
+
             }
         }
         private static List<string> MetrologicalSeasonFall()
@@ -237,7 +227,7 @@ namespace InsertDataWeatherApp
 
                 int turnCounter = 0;
 
-                foreach (var wd in q1)
+                foreach (var wd in q2)
                 {
                     if (wd.tempAVG < 10)
                     {
@@ -265,40 +255,39 @@ namespace InsertDataWeatherApp
                 var q1 = context.WeatherDataInfo
                     .Where(x => x.Location == $"{location}")
                     .GroupBy(x => x.DateAndTime.Date)
-                    .Select(x => new { DateAndTime = x.Key, HumAvg = x.Average(x => x.Humidity), TempAvg = x.Average(x => x.Temp) })
-                    .OrderBy(x => ((x.HumAvg - 78)) * (double)(x.TempAvg / 15) / 0.22);
+                    .Select(x => new { DateAndTime = x.Key, HumAvg = x.Average(x => x.Humidity), TempAvg = x.Average(x => x.Temp) })//Plocka ut medeltemp och medelfuktighet.
+                    .OrderBy(x => ((x.HumAvg - 78)) * (double)(x.TempAvg / 15) / 0.22);//Sortera i ordningen minst till störst efter formels resultat.
 
                 var topTen = q1
-                    .Take(10);
+                    .Take(10); // Ta endast ut de tio först tio. 
 
                 var bottomTen = q1
-                    .OrderByDescending(x => ((x.HumAvg - 78)) * (double)(x.TempAvg / 15) / 0.22)
+                    .OrderByDescending(x => ((x.HumAvg - 78)) * (double)(x.TempAvg / 15) / 0.22)//Sortera efter procentsatsen du får ut
                     .Take(10)
-                    .OrderBy(x => ((x.HumAvg - 78)) * (double)(x.TempAvg / 15) / 0.22);
+                    .OrderBy(x => ((x.HumAvg - 78)) * (double)(x.TempAvg / 15) / 0.22);//sortera i fallande årning efter resultatet från formeln.
 
-
-                moldList.Add("Top tio rader");
+                InsideorOutSide(location);
+                moldList.Add("Lägst risk för mögel");
                 moldList.Add("******************************************");
                 foreach (var mold in topTen)
                 {
-                    if (Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22) <= 0)
-                    {
-                        moldList.Add($"{mold.DateAndTime: yyyy/MM/dd} \t {Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22)}% Noll risk för mögel ");
-                    }
-                    else
-                    {
-                        moldList.Add($"{mold.DateAndTime: yyyy/MM/dd} \t {Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22)}% Noll risk för mögel ");
-                    }
-                }
-                moldList.Add("\n");
-                moldList.Add("Lägsta tio rader");
-                moldList.Add("******************************************");
-                foreach (var mold in bottomTen)
-                {
+                    //lägg till rätt typ av sträng i listan. 
                     if (Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22) <= 0)
                     {
                         moldList.Add($"{mold.DateAndTime: yyyy/MM/dd} \t {Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22)}% Noll risk för mögel");
                     }
+                }
+                moldList.Add("\n");
+                moldList.Add("Störst risk för mögel(om ej negativt)");
+                moldList.Add("******************************************");
+                foreach (var mold in bottomTen)
+                {
+                    //kollar även där det ska vara högst risk för mögel om det finns minusvärden även där.
+                    if (Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22) <= 0)
+                    {
+                        moldList.Add($"{mold.DateAndTime: yyyy/MM/dd} \t {Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22)}% Noll risk för mögel");
+                    }
+                    //Om risken för mögel är över 0%
                     else if (Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22) > 0)
                     {
                         moldList.Add($"{mold.DateAndTime: yyyy/MM/dd} \t {Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22)}% Risk för mögel");
@@ -314,35 +303,35 @@ namespace InsertDataWeatherApp
                 var q1 = context.WeatherDataInfo
                     .Where(x => x.Location == "Ute" && x.DateAndTime > DateTime.Parse("2016-08-01"))
                     .GroupBy(x => x.DateAndTime.Date)
-                    .Select(x => new { day = x.Key, tempAVG = x.Average(x => x.Temp) });
-
-                var q2 = q1
+                    .Select(x => new { day = x.Key, TempAvg = x.Average(x => x.Temp) })
                     .OrderBy(x => x.day);
 
                 int turnCounter = 0;
-                foreach (var wd in q2)
+                foreach (var wd in q1)
                 {
-                    if (wd.tempAVG <= 0)
+                    if (wd.TempAvg <= 0)
                     {
                         turnCounter++;
+                        //lika med true så returnerar vi true och skriver ut en sträng med aktuellt datum.
                         if (turnCounter == 5)
                         {
-                            Console.WriteLine(wd.day + " " + wd.tempAVG);
+                            Console.WriteLine(wd.day + " " + wd.TempAvg);
                             return true;
                         }   
                     }
                     else
                     {
-                        turnCounter = 0; //The count starts over.
-
+                        //Räkningen startar om.
+                        turnCounter = 0;
                     }    
                 }
+                //går vi ur loopen och turnCounter inte gått upp till 5 fanns det inga datum som uppfyllde vilkåren.
+                //returneras false hittades inget datum.
                 if (turnCounter==0)
                 {
                     Console.WriteLine("No data found");
                     
                 }
-                //return DateTime.Parse("3021-12-12"); //Data for winter season not found.
                 return false;
             }
         }
@@ -355,16 +344,18 @@ namespace InsertDataWeatherApp
                 var resultSet = context.WeatherDataInfo
                     .Where(x => x.Location == $"{location}")
                     .GroupBy(x => x.DateAndTime.Date)
-                    .Select(x => new { DateAndTime = x.Key, AVGHumid = x.Average(x => x.Humidity) })
-                    .OrderByDescending(x => x.AVGHumid);
+                    .Select(x => new { DateAndTime = x.Key, AVGHumid = x.Average(x => x.Humidity) });
+                    
 
                 var topResult = resultSet
+                    .OrderByDescending(x => x.AVGHumid)
                     .Take(10);
-                var bottomRessult = resultSet
-                    .OrderBy(x => x.AVGHumid)
+                var bottomResult = resultSet
+                    .OrderBy(x => x.AVGHumid)//För att få de nedersta raderna.
                     .Take(10)
-                    .OrderByDescending(x => x.AVGHumid);
+                    .OrderByDescending(x => x.AVGHumid);//För att få de nedersta raderna i fallande ordning.
 
+                InsideorOutSide(location);
                 avgHumidity.Add("Tio dagarna med högst fuktighet");
                 avgHumidity.Add("*******************************");
                 foreach (var result in topResult)
@@ -375,9 +366,9 @@ namespace InsertDataWeatherApp
                 avgHumidity.Add("Tio dagarna med lägst fuktighet");
                 avgHumidity.Add("*******************************");
 
-                foreach (var result in bottomRessult)
+                foreach (var result in bottomResult)
                 {
-                    avgHumidity.Add($"{result.DateAndTime:yyyy/MM/dd} \t {Math.Round(result.AVGHumid, 1)} %");
+                    avgHumidity.Add($"{result.DateAndTime:yyyy/MM/dd} \t {Math.Round(result.AVGHumid,1)} %");
                 }
                 return avgHumidity;
             }
@@ -404,6 +395,7 @@ namespace InsertDataWeatherApp
                     .Take(10)
                     .OrderByDescending(x => x.AvgTemp);
 
+                InsideorOutSide(location);
                 avgTemperatures.Add("Tio dagarna med högst temp");
                 avgTemperatures.Add("**************************");
                 foreach (var result in topResult)
@@ -450,6 +442,17 @@ namespace InsertDataWeatherApp
             Console.WriteLine("Tryck på valfri knapp för att fortsätta...");
             Console.ReadLine();
             Console.Clear();
+        }
+        private static void InsideorOutSide(string location)
+        {
+            if (location == "Ute")
+            {
+                Console.WriteLine("[Utomhus]");
+            }
+            else
+            {
+                Console.WriteLine("[Inomhus]");
+            }
         }
         private static void MainMenu()
         {
