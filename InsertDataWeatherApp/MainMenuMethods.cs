@@ -12,13 +12,11 @@ namespace InsertDataWeatherApp
     public class MainMenuMethods
     {
         static bool exit = true;
-        
         static string filePath = @"D:\It-Högskolan\Blazor\Inlämningsuppgift\InsertDataWeatherApp\InsertDataWeatherApp\File\TemperaturData.csv";
         //ReadCSVFile(filePath);
         public static void Run()
         {
-           
-            
+
             while (exit)
             {   
                 Console.WriteLine("Tryck [S] för att söka efter datum");
@@ -34,11 +32,10 @@ namespace InsertDataWeatherApp
                 {
                     case ConsoleKey.S:
                         Console.Clear();
-                        bool ok = true;
-                        while (ok)
+                        bool dateLoop = true;
+                        while (dateLoop)
                         {
                             Console.WriteLine("Skriv in datum: yyyy/MM/dd");
-                            
                             try
                             {
                                 DateTime date = Convert.ToDateTime(Console.ReadLine());
@@ -49,41 +46,91 @@ namespace InsertDataWeatherApp
                                 Console.WriteLine("Tryck på valfri knapp för att fortsätta...");
                                 Console.ReadLine();
                                 Console.Clear();
-                                ok = false;
+                                dateLoop = false;
                             }
                             catch
                             {
                                 Console.Clear();
                                 Console.WriteLine("Skriv in ett giltigt datum");
                             }
-
-
                         }
                         break;
+   
                     case ConsoleKey.T:
+                        bool tempLoop = true;
                         Console.Clear();
-                        Console.Write("skriv in 'Ute' eller 'Inne': ");
-                        string weatherInput = Console.ReadLine();
-                        foreach (var item in FromWarmToCold(weatherInput))
+                        while (tempLoop)
                         {
-                            Console.WriteLine(item);
+                            Console.WriteLine("Tryck [1] För utomhustemperatur");
+                            Console.WriteLine("Tryck [2] För Innomhustemperatur");
+                            try
+                            {
+                                string weatherInput = "";
+                                int numberInput = int.Parse(Console.ReadLine());
+                                if (numberInput == 1)
+                                {
+                                    weatherInput = "Ute";     
+                                }
+                                else if (numberInput == 2)
+                                {
+                                    weatherInput = "Inne";                                
+                                }
+                                
+                                foreach (var item in FromWarmToCold(weatherInput))
+                                {
+                                    Console.WriteLine(item);
+                                }
+                                Console.Clear();
+                                Console.WriteLine("Tryck på valfri knapp för att fortsätta...");
+                                Console.ReadLine();
+                                Console.Clear();
+                                tempLoop = false;
+                            }
+                            catch
+                            {
+                                Console.Clear();
+                                Console.WriteLine("Skriv in ett giltigt värde");
+                            }
+
                         }
-                        Console.WriteLine("Tryck på valfri knapp för att fortsätta...");
-                        Console.ReadLine();
-                        Console.Clear();
                         break;
+
                     case ConsoleKey.H:
+                        bool humidLoop = true;
                         Console.Clear();
-                        Console.Write("skriv in 'Ute' eller 'Inne': ");
-                        string humidInput = Console.ReadLine();
-                        Console.Clear();
-                        foreach (var item in HumidMethod(humidInput))
+                        while (humidLoop)
                         {
-                            Console.WriteLine(item);
+                            Console.WriteLine("Tryck [1] för fuktighet utomhus");
+                            Console.WriteLine("Tryck [2] för fuktighet inomhus");
+                            try
+                            {
+                                string humidInput = "";
+                                int numberInput = int.Parse(Console.ReadLine());
+                                if (numberInput == 1)
+                                {
+                                    humidInput = "Ute";
+                                }
+                                else if (numberInput == 2)
+                                {
+                                    humidInput = "Inne";
+                                }
+                                Console.Clear();
+                                foreach (var item in HumidMethod(humidInput))
+                                {
+                                    Console.WriteLine(item);
+                                }
+                                Console.WriteLine("Tryck på valfri knapp för att fortsätta...");
+                                Console.ReadLine();
+                                Console.Clear();
+                                humidLoop = false;
+                            }
+                            catch 
+                            {
+                                Console.Clear();
+                                Console.WriteLine("Skriv in ett giltigt värde");
+
+                            }
                         }
-                        Console.WriteLine("Tryck på valfri knapp för att fortsätta...");
-                        Console.ReadLine();
-                        Console.Clear();
                         break;
 
                     case ConsoleKey.W:
