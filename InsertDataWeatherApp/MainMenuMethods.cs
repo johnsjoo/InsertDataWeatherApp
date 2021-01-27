@@ -16,7 +16,7 @@ namespace InsertDataWeatherApp
         static string filePath = @"D:\It-Högskolan\Blazor\Inlämningsuppgift\InsertDataWeatherApp\InsertDataWeatherApp\File\TemperaturData.csv";
         static bool exit = true;
 
-        //ReadCSVFile(filePath);
+        //ReadCSVFile(filePath);s
         public static void Run()
         {
             while (exit)
