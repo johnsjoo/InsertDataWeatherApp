@@ -13,10 +13,10 @@ namespace InsertDataWeatherApp
     {
         static bool exit = true;
         static string filePath = @"D:\It-Högskolan\Blazor\Inlämningsuppgift\InsertDataWeatherApp\InsertDataWeatherApp\File\TemperaturData.csv";
-        //ReadCSVFile(filePath);
+        
         public static void Run()
         {
-
+            //ReadCSVFile(filePath);
             while (exit)
             {   
                 Console.WriteLine("Tryck [S] för att söka efter datum");
@@ -80,10 +80,10 @@ namespace InsertDataWeatherApp
                                 {
                                     Console.WriteLine(item);
                                 }
-                                Console.Clear();
+                                
                                 Console.WriteLine("Tryck på valfri knapp för att fortsätta...");
                                 Console.ReadLine();
-                                Console.Clear();
+                                
                                 tempLoop = false;
                             }
                             catch
@@ -106,14 +106,13 @@ namespace InsertDataWeatherApp
                             {
                                 string humidInput = "";
                                 int numberInput = int.Parse(Console.ReadLine());
+
                                 if (numberInput == 1)
-                                {
                                     humidInput = "Ute";
-                                }
+
                                 else if (numberInput == 2)
-                                {
                                     humidInput = "Inne";
-                                }
+
                                 Console.Clear();
                                 foreach (var item in HumidMethod(humidInput))
                                 {
@@ -156,23 +155,44 @@ namespace InsertDataWeatherApp
                         Console.Clear();
                         break;
 
-                    case ConsoleKey.M:
+                    case ConsoleKey.M: 
+                        bool moldLoop = true;
                         Console.Clear();
-                        Console.Write("skriv in 'Ute' eller 'Inne': ");
-                        string input = Console.ReadLine();
-                        foreach (var item in Moldcheck(input))
+                        while (moldLoop)
                         {
-                            Console.WriteLine(item);
+                            Console.WriteLine("Tryck [1] För mögelrisk utomhus");
+                            Console.WriteLine("Tryck [2] För mögelrisk inomhus");
+                            try
+                            {
+                                string moldInput = "";
+                                int numberInput = int.Parse(Console.ReadLine());
+                                if (numberInput == 1)
+                                    moldInput = "Ute";
+
+                                else if (numberInput == 2)
+                                    moldInput = "Inne";
+                                Console.Clear();
+                                foreach (var item in Moldcheck(moldInput))
+                                {
+                                    Console.WriteLine(item);
+                                }
+                                Console.WriteLine("Tryck på valfri knapp för att fortsätta...");
+                                Console.ReadLine();
+                                Console.Clear();
+                            }
+                            catch
+                            {
+                                Console.Clear();
+                                Console.WriteLine("Skriv in ett giltigt värde");
+                            }
                         }
-                        Console.WriteLine("Tryck på valfri knapp för att fortsätta...");
-                        Console.ReadLine();
-                        Console.Clear();
                         break;
 
                     case ConsoleKey.E:
                         exit = false;
-                        break;
+                        break;     
                 }
+                Console.Clear();
             }
         }
 
@@ -279,7 +299,11 @@ namespace InsertDataWeatherApp
                 moldList.Add("------------------------------------------");
                 foreach (var mold in bottomTen)
                 {
-                    if (Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22) > 0)
+                    if (Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22) <= 0)
+                    {
+                        moldList.Add($"{mold.DateAndTime: yyyy/MM/dd} \t {Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22)}%  Noll risk för mögel");
+                    }
+                    else if (Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22) > 0)
                     {
                         moldList.Add($"{mold.DateAndTime: yyyy/MM/dd} \t {Math.Round((mold.HumAvg - 78) * (double)(mold.TempAvg / 15) / 0.22)}%");
                     }
@@ -290,11 +314,9 @@ namespace InsertDataWeatherApp
                     
                 }
                 return moldList;
-
             }
 
         }
-
 
         private static DateTime MetrologicalSeasonWinter()
         {
@@ -307,8 +329,6 @@ namespace InsertDataWeatherApp
 
                 var q2 = q1
                     .OrderBy(x => x.day);
-
-
 
                 int turnCounter = 0;
 
